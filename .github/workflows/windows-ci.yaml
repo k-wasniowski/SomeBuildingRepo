@@ -1,0 +1,42 @@
+name: Windows PR
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Docker Image
+      run: >
+          docker build -f ./docker/windows/Dockerfile
+          --build-arg ARTIFACTORY_USER=${{ vars.ARTIFACTORY_USER }}
+          --build-arg ARTIFACTORY_TOKEN=${{ secrets.ARTIFACTORY_TOKEN }}
+          -t belleriand.jfrog.io/arda-docker/windows/arda-webrtc:latest .
+    
+    - name: Conan Run Container
+      run: >
+          docker run
+          --detach
+          --tty
+          --name WebRtcBuilder
+          --volume ${{ github.workspace }}:C:\SomeBuildingRepo
+          belleriand.jfrog.io/arda-docker/windows/arda-webrtc:latest
+    
+    - name: Create Conan Default Profile
+      run: docker exec WebRtcBuilder conan profile detect
+
+    - name: Conan Install Command
+      run: docker exec WebRtcBuilder conan install .
+
+    - name: Conan Source
+      run: docker exec WebRtcBuilder conan source .
+
+    - name: Conan Build
+      run: docker exec WebRtcBuilder conan build .
