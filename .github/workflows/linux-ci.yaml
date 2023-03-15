@@ -45,7 +45,7 @@ jobs:
       run: docker exec WebRtcBuilder conan --version
 
     - name: Conan Install Command
-      run: docker exec WebRtcBuilder conan install . --profile:build=${{ matrix.containerPath }}/profiles/${{ matrix.profile }}
+      run: docker exec WebRtcBuilder conan install . --profile ${{ matrix.profile }}
 
     - name: Conan Source Command
       run: docker exec WebRtcBuilder conan source .
