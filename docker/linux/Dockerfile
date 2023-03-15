@@ -22,6 +22,10 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install conan
 
+RUN conan profile detect
+
+COPY profiles/* /root/.conan2/profiles/
+
 WORKDIR /home/SomeBuildingRepo
 
 ENTRYPOINT ["/bin/bash"]

@@ -23,6 +23,14 @@ class SomeBuildingRepo(ConanFile):
         args += ' is_debug=false'
         args += ' rtc_include_tests=false'
 
+        if self.settings.os == 'Linux':
+            if self.settings.arch == 'x86_64':
+                args += " target_cpu=\\\"x64\\\""
+            elif self.settings.arch == 'armv8':
+                args += " target_cpu=\\\"arm64\\\""
+            else:
+                raise 'Unsupported Linux distribution'
+
         if platform.system() == 'Windows':
             args += ' use_lld=false'
 

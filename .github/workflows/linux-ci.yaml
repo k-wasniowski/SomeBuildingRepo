@@ -1,0 +1,54 @@
+name: PR
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - os: linux-x64
+            targetImage: ubuntu:22.04
+            profile: linux-x64-release
+            containerPath: /home/SomeBuildingRepo
+          - os: arm64
+            targetImage: ubuntu:22.04
+            profile: arm64-release
+            containerPath: /home/SomeBuildingRepo
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Build Docker Image
+      run: >
+          docker build -f ./docker/linux/Dockerfile
+          --build-arg TARGET_IMAGE=${{ matrix.targetImage }}
+          -t belleriand.jfrog.io/arda-docker/linux/arda-webrtc:${{ github.event.number }} .
+
+    - name: Run Docker Container
+      run: >
+          docker run
+          --detach
+          --tty
+          --name WebRtcBuilder
+          --volume ${{ github.workspace }}:${{ matrix.containerPath }}
+          belleriand.jfrog.io/arda-docker/linux/arda-webrtc:${{ github.event.number }}
+
+    - name: Conan Version
+      run: docker exec WebRtcBuilder conan --version
+
+    - name: Conan Install Command
+      run: docker exec WebRtcBuilder conan install . --profile ${{ matrix.profile }}
+
+    - name: Conan Source Command
+      run: docker exec WebRtcBuilder conan source .
+
+    - name: Conan Build
+      run: docker exec WebRtcBuilder conan build . --profile ${{ matrix.profile }}
