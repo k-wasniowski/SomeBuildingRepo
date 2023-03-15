@@ -51,4 +51,4 @@ jobs:
       run: docker exec WebRtcBuilder conan source .
 
     - name: Conan Build
-      run: docker exec WebRtcBuilder conan build .
+      run: docker exec WebRtcBuilder conan build . --profile ${{ matrix.profile }}
